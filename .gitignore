@@ -6,3 +6,10 @@ plugins/
 __pycache__/
 *.pyc
 .DS_Store
+target/
+dbt_packages/
+venv312/
+venv/
+*.venv/
+*.parquet
+*.csv

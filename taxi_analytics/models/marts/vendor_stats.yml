@@ -1,3 +1,19 @@
 version: 2
 
 models:
+  - name: vendor_stats
+    description: "Daily aggregated stats per taxi vendor"
+    columns:
+      - name: vendor_id
+        description: "Unique identifier of the taxi vendor"
+        tests:
+          - unique
+          - not_null
+      - name: trip_count
+        description: "Total number of trips for this vendor"
+        tests:
+          - not_null
+      - name: avg_fare
+        description: "Average fare amount"
+        tests:
+          - not_null

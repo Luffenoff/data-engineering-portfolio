@@ -38,6 +38,15 @@ Log summary (Xcom data passing)
 - Postgres как аналитическое хранилище, подключение из док-контейнера к хосту
 
 
+## Что реализовано на v0.3
+
+
+- dbt: staginng layer (source - stg_trips)
+- dbt: marts layer с агрегацией (ref() - vendor_stats)
+- dbt tests: unique, not_null - ошибка в колонке словил
+- dbt docs: автоматическая документация + lineage graph
+
+
 ## Пример работы (лог из v0.1)
 
 
@@ -45,6 +54,10 @@ Log summary (Xcom data passing)
 - Baseline (Seq Scan): 207 ms
 - + Index (узкий фильтр): 49 ms  
 - + Partitioning by week + Index: 41.8 ms
+
+## Пример работы (v0.3)
+
+![Lineage Graph](docs/images/image-1.png)
 
 
 ## Roadmap
