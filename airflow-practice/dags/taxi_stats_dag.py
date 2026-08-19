@@ -4,6 +4,7 @@ from airflow.operators.python import PythonOperator
 import psycopg2
 import random
 from airflow.sensors.filesystem import FileSensor
+from airflow.operators.bash import BashOperator
 
 POSTGRES_CONN = {
     "host": "host.docker.internal",
@@ -109,5 +110,13 @@ with DAG(
         timeout=120,           
         mode="poke",           
     )
+    run_dbt = BashOperator(
+        task_id="run_dbt_models",
+        bash_command="cd /opt/airflow/dbt && dbt run --profiles-dir /home/airflow/.dbt",
+    )
+    run_dbt_tests = BashOperator(
+        task_id="run_dbt_tests",
+        bash_command="cd /opt/airflow/dbt && dbt test --profiles-dir"
+    )
 
-    wait_for_file >> unstable_check >> check_connection >> get_stats >> log_result
+    wait_for_file >> unstable_check >> check_connection >> get_stats >> log_result >> run_dbt >> run_dbt_tests

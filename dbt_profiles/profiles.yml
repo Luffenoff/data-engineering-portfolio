@@ -1,0 +1,12 @@
+taxi_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: host.docker.internal
+      port: 5432
+      user: practice
+      pass: practice
+      dbname: de_practice
+      schema: dbt_dev
+      threads: 1
