@@ -111,12 +111,12 @@ with DAG(
         mode="poke",           
     )
     run_dbt = BashOperator(
-        task_id="run_dbt_models",
-        bash_command="cd /opt/airflow/dbt && dbt run --profiles-dir /home/airflow/.dbt",
-    )
+    task_id="run_dbt_models",
+    bash_command="cd /opt/***/dbt && dbt run --profiles-dir /opt/***/dbt",
+)
     run_dbt_tests = BashOperator(
-        task_id="run_dbt_tests",
-        bash_command="cd /opt/airflow/dbt && dbt test --profiles-dir"
-    )
+    task_id="run_dbt_tests",
+    bash_command="cd /opt/***/dbt && dbt test --profiles-dir /opt/***/dbt",
+)
 
     wait_for_file >> unstable_check >> check_connection >> get_stats >> log_result >> run_dbt >> run_dbt_tests
