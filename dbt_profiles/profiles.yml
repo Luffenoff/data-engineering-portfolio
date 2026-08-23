@@ -6,7 +6,7 @@ taxi_analytics:
       host: host.docker.internal
       port: 5432
       user: practice
-      pass: practice
+      password: practice
       dbname: de_practice
       schema: dbt_dev
       threads: 1

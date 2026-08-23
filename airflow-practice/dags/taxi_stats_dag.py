@@ -112,11 +112,11 @@ with DAG(
     )
     run_dbt = BashOperator(
     task_id="run_dbt_models",
-    bash_command="cd /opt/***/dbt && dbt run --profiles-dir /opt/***/dbt",
-)
+    bash_command="cd /opt/***/dbt && dbt run",
+    )
     run_dbt_tests = BashOperator(
     task_id="run_dbt_tests",
-    bash_command="cd /opt/***/dbt && dbt test --profiles-dir /opt/***/dbt",
-)
+    bash_command="cd /opt/***/dbt && dbt test",
+    )
 
     wait_for_file >> unstable_check >> check_connection >> get_stats >> log_result >> run_dbt >> run_dbt_tests
