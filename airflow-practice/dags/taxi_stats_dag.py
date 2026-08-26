@@ -6,7 +6,8 @@ import random
 from airflow.sensors.filesystem import FileSensor
 from airflow.operators.bash import BashOperator
 import requests
-from TELEGRAM_CHAT_ID, TELEGRAM_BOT_TOKEN import .env
+from airflow.models import Variable
+
 
 POSTGRES_CONN = {
     "host": "host.docker.internal",
@@ -54,23 +55,43 @@ def log_summary(**context):
 
 def unstable_external_check(**context):
     print("Checking external data source...")
-    if random.random() < 0.6:
+    if random.random() < 0.95:
         raise Exception("External source unavailable! Connection timeout.")
     print("External source is up, proceeding.")
     return "ok"
 
 
+TELEGRAM_BOT_TOKEN = Variable.get("telegram_bot_token")
+TELEGRAM_CHAT_ID = Variable.get("telegram_chat_id")
+
+
+def send_alert(message: str):
+    webhook_url = "https://webhook.site/#!/view/b9630971-1c29-49a4-a532-2015176e6a24"
+    requests.post(webhook_url, json={"text": message})
+
+
+def send_telegram_alert(message: str):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID, "text":message})
+
+
 def alert_on_failure(context):
     task_instance = context["task_instance"]
-    print(f"🚨 ALERT: Task '{task_instance.task_id}' failed after all retries!")
-    print(f"DAG: {task_instance.dag_id}, Execution date: {context['execution_date']}")
-
+    message = (
+        f"🚨 Task Failed\n"
+        f"DAG: {task_instance.dag_id}\n"
+        f"Task: {task_instance.task_id}\n"
+        f"Execution date: {context['execution_date']}"
+    )
+    print(message) # оставляем и в лог тоже
+    send_alert(message)
 
 
 default_args = {
     "owner": "airflow",
     "retries": 1,
     "retry_delay": timedelta(minutes=1),
+    "on_failure_callback": alert_on_failure,
 }
 
 with DAG(
@@ -115,13 +136,13 @@ with DAG(
     )
     run_dbt = BashOperator(
     task_id="run_dbt_models",
-    bash_command="cd /opt/***/dbt && dbt run",
+    bash_command="cd /opt/airflow/dbt && dbt run",
     retries=2,
     retry_delay=timedelta(minutes=2),
     )
     run_dbt_tests = BashOperator(
     task_id="run_dbt_tests",
-    bash_command="cd /opt/***/dbt && dbt test",
+    bash_command="cd /opt/airflow/dbt && dbt test",
     )
 
     wait_for_file >> unstable_check >> check_connection >> get_stats >> log_result >> run_dbt >> run_dbt_tests
