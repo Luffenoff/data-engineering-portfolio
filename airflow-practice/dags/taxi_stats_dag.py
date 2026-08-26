@@ -5,6 +5,8 @@ import psycopg2
 import random
 from airflow.sensors.filesystem import FileSensor
 from airflow.operators.bash import BashOperator
+import requests
+from TELEGRAM_CHAT_ID, TELEGRAM_BOT_TOKEN import .env
 
 POSTGRES_CONN = {
     "host": "host.docker.internal",
@@ -100,8 +102,9 @@ with DAG(
         task_id="unstable_external_check",
         python_callable=unstable_external_check,
         retries=3,                          
-        retry_delay=timedelta(seconds=10),  
-        on_failure_callback=alert_on_failure, 
+        retry_delay=timedelta(minutes=1),  
+        retry_exponential_backoff=True,
+        max_retry_delay=timedelta(minutes=5), 
     )
     wait_for_file = FileSensor(
         task_id="wait_for_new_data_file",
@@ -113,6 +116,8 @@ with DAG(
     run_dbt = BashOperator(
     task_id="run_dbt_models",
     bash_command="cd /opt/***/dbt && dbt run",
+    retries=2,
+    retry_delay=timedelta(minutes=2),
     )
     run_dbt_tests = BashOperator(
     task_id="run_dbt_tests",
