@@ -66,7 +66,7 @@ TELEGRAM_CHAT_ID = Variable.get("telegram_chat_id")
 
 
 def send_alert(message: str):
-    webhook_url = "https://webhook.site/#!/view/b9630971-1c29-49a4-a532-2015176e6a24"
+    webhook_url = "https://webhook.site/b9630971-1c29-49a4-a532-2015176e6a24"
     requests.post(webhook_url, json={"text": message})
 
 

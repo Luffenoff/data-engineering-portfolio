@@ -47,6 +47,9 @@ Log summary (Xcom data passing)
 - dbt docs: автоматическая документация + lineage graph
 
 
+## Что реализовано на v0.3
+
+
 ## Пример работы (лог из v0.1)
 
 
@@ -58,6 +61,13 @@ Log summary (Xcom data passing)
 ## Пример работы (v0.3)
 
 ![Lineage Graph](docs/images/image-1.png)
+
+
+## Пример работы (v0.3)
+
+- {
+  "text": "🚨 Task Failed\nDAG: taxi_stats_pipeline\nTask: unstable_external_check\nExecution date: 2026-08-27 18:48:14.910677+00:00"
+    }
 
 
 ## Roadmap
