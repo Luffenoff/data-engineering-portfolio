@@ -47,7 +47,14 @@ Log summary (Xcom data passing)
 - dbt docs: автоматическая документация + lineage graph
 
 
-## Что реализовано на v0.3
+## Что реализовано на v0.8
+
+- Airflow + dbt интеграция: DAG вызывает `dbt run` и `dbt test` через BashOperator
+- Исправлен реальный баг совместимости Celery/click в образе Airflow (см. ниже)
+- HTTP-based alerting: DAG отправляет уведомление о финальном провале таска на внешний webhook
+- В проде это был бы Slack/Telegram webhook; из-за сетевых ограничений (блокировка Telegram API) для демонстрации используется webhook.site
+- Exponential backoff для retry на нестабильном таске (`retry_exponential_backoff=True`)
+- Airflow Variables для хранения секретов (webhook URL) вместо хардкода в коде
 
 
 ## Пример работы (лог из v0.1)
@@ -63,11 +70,18 @@ Log summary (Xcom data passing)
 ![Lineage Graph](docs/images/image-1.png)
 
 
-## Пример работы (v0.3)
+## Пример работы (v0.8)
 
 - {
   "text": "🚨 Task Failed\nDAG: taxi_stats_pipeline\nTask: unstable_external_check\nExecution date: 2026-08-27 18:48:14.910677+00:00"
     }
+
+
+## Разобранные проблемы (реальные баги, не учебные)
+
+- **Celery/click incompatibility**: свежий баг в связке Airflow 2.10.4 + Celery, вызванный обновлением пакета `click` до 8.3.0 — worker падал в вечный restart-loop. Исправлено закреплением версии `click==8.2.1` в Dockerfile (решение подтверждено официальной документацией Astronomer).
+- **Docker volume paths**: относительные пути в `docker-compose.yaml` резолвятся относительно расположения самого файла, не текущей директории — источник нескольких ошибок `file not found`.
+- **profiles.yml внутри контейнера**: dbt использует разные profiles.yml на хосте и в контейнере — `host.docker.internal` вместо `localhost` для подключения из Docker к сервисам на хосте.
 
 
 ## Roadmap
