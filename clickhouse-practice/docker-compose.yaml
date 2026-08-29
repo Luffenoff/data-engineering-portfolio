@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - "8123:8123"   # HTTP интерфейс
+      - "9000:9000"   # native protocol
+    environment:
+      CLICKHOUSE_USER: practice
+      CLICKHOUSE_PASSWORD: practice
+      CLICKHOUSE_DB: taxi_analytics
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+volumes:  
+  clickhouse_data:
+      
