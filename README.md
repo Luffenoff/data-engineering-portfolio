@@ -4,7 +4,7 @@
 
 Учебный ELT-пайплайн для практики Data Engineering: от сырых данных до аналитических агрегатов, с полным набором production-паттернов Airflow, dbt и сравнением аналитических СУБД.
 
-## Статус: v1.0 — Airflow + dbt + ClickHouse benchmark
+## Статус: v1.1 — Spark setup
 
 ## Стек
 
@@ -70,6 +70,12 @@ dbt test (data quality checks)
 - Нативная загрузка parquet напрямую в ClickHouse через табличную функцию `file()`, без Python-прослойки — 3.3M строк за **0.54s**
 - Бенчмарк ClickHouse vs Postgres на идентичном агрегирующем запросе
 - Проверена консистентность агрегатов между Postgres и ClickHouse после независимой загрузки данных
+
+### v1.1 — Spark setup
+
+- PySpark 4.2.0 развёрнут локально (local[*] mode)
+- Прочитан parquet-датасет (3.3M строк), схема автоматически выведена Spark
+- Знакомство с lazy evaluation: transformations vs actions
 
 ## Пример работы: SQL-оптимизация (Postgres)
 
