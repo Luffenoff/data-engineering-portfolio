@@ -77,6 +77,13 @@ dbt test (data quality checks)
 - Прочитан parquet-датасет (3.3M строк), схема автоматически выведена Spark
 - Знакомство с lazy evaluation: transformations vs actions
 
+### v1.3 - Spark trasnformation
+
+- DataFrame API: groupBy + agg (vendor aggregation)
+- Spark SQL: идентичный запрос через createOrReplaceTempView + spark.sql()
+- Проверена консистентность результатов между DataFrame API и Spark SQL
+- Кросс-проверка: результаты идентичны агрегатам из Postgres/ClickHouse (три независимых движка)
+
 ## Пример работы: SQL-оптимизация (Postgres)
 
 Индексы и партиционирование дали ~5x ускорение запроса:
