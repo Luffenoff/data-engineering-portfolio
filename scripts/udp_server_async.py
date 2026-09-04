@@ -9,3 +9,4 @@ class TelemetryProtocol(asyncio.DatagramProtocol):
     
     def datagram_received(self, data, addr):
         message = data.decode('utf-8')
+        print(f"Получено от {addr}: {message}")
