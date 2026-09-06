@@ -84,6 +84,12 @@ dbt test (data quality checks)
 - Проверена консистентность результатов между DataFrame API и Spark SQL
 - Кросс-проверка: результаты идентичны агрегатам из Postgres/ClickHouse (три независимых движка)
 
+### v1.3 — Asyncio & UDP sockets (backend foundation)
+
+- Продемонстрирована разница sync vs async: 6s (sequential) → 2s (concurrent) на трёх I/O-bound задачах
+- UDP-сервер: синхронная и асинхронная версии (socket vs asyncio.DatagramProtocol)
+- Асинхронный сервер принимает новые пакеты, не блокируясь обработкой предыдущих — прототип телеметрического коллектора
+
 ## Пример работы: SQL-оптимизация (Postgres)
 
 Индексы и партиционирование дали ~5x ускорение запроса:
