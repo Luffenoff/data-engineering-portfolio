@@ -168,3 +168,6 @@ cd clickhouse-practice
 UPD: так же работаю пока на работаю делаю процессы 
 docker-compose up -d
 ```
+TCP работает проверил этот момент
+
+
