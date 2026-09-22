@@ -13,7 +13,7 @@
 - **Data source:** NYC Taxi Trip Data (3.3M rows, Dec 2023)
 - **Transformation:** dbt (staging, marts, incremental models)
 
-## Архитектура пайплайна
+## Архитектура пайплайна/
 
 ```
 FileSensor (wait for trigger)
