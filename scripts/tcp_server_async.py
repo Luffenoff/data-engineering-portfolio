@@ -10,9 +10,11 @@ async def handle_client(reader, writer):
     message = data.decode()
     print(f"Получено: {message}")
     
+    await asyncio.sleep(3)
+    print(f"Отвечаю клиенту: {addr}")
+    
     writer.write("Message received!".encode())
     await writer.drain()
-    
     writer.close()
     await writer.wait_closed()
     
