@@ -6,6 +6,9 @@ import asyncio
 app = FastAPI()
 
 
+events: list[dict] = []
+
+
 class TelemetryEvent(BaseModel):
     source: str
     message: str
@@ -17,4 +20,8 @@ async def health():
     return {"status": "ok"}
 
 
-@app.post("/")
+@app.post("/telemetry")
+async def receive_telemetry(event: TelemetryEvent):
+    await asyncio.sleep(0) # просто заглушка
+    print(f"[{event.level.upper()}] {event.source}: {event.message}")
+    return {"received": True, "source": event.source}
