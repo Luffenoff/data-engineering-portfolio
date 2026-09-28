@@ -1,154 +1,97 @@
 # Data Engineering Portfolio
 
-## О проекте
+Учебный DE-пайплайн: от сырых данных до аналитических агрегатов.  
+Весь стек запускался локально, все проблемы реальные — не туториал.
 
-Учебный ELT-пайплайн для практики Data Engineering: от сырых данных до аналитических агрегатов, с полным набором production-паттернов Airflow, dbt и сравнением аналитических СУБД.
-
-## Статус: v1.5 — Connect server with data
+## Статус: v1.6 — TCP/UDP collectors + FastAPI
 
 ## Стек
 
-- **Orchestration:** Apache Airflow 2.10.4 (Docker)
-- **Databases:** PostgreSQL 16, ClickHouse (OLAP benchmark)
-- **Data source:** NYC Taxi Trip Data (3.3M rows, Dec 2023)
-- **Transformation:** dbt (staging, marts, incremental models)
-
-## Архитектура пайплайна/
-
-```
-FileSensor (wait for trigger)
-    ↓
-Unstable Source Check (retry logic demo)
-    ↓
-Connection Check (count validation)
-    ↓
-Get Stats by Vendor (aggregation)
-    ↓
-Log Summary (XCom data passing)
-    ↓
-dbt run (staging + marts models)
-    ↓
-dbt test (data quality checks)
-```
+| Слой | Технологии |
+|---|---|
+| Orchestration | Apache Airflow 2.10.4 (Docker) |
+| Databases | PostgreSQL 16, ClickHouse (OLAP) |
+| Transformation | dbt (staging, marts, incremental) |
+| Batch processing | Apache Spark / PySpark 4.2.0 |
+| Networking | TCP/UDP сокеты (sync + asyncio) |
+| API | FastAPI + Pydantic + uvicorn |
+| Data source | NYC Taxi Trip Data, Dec 2023 (3.3M rows) |
 
 ## Что реализовано
 
 ### v0.1 — Airflow foundation
-
-- Airflow DAG с 5 тасками и явными зависимостями
+- DAG с 5 тасками и явными зависимостями
 - XCom для передачи данных между тасками
-- Retry logic с настраиваемым количеством попыток и задержкой
-- `on_failure_callback` для алертинга при финальном провале таска
-- FileSensor для ожидания внешнего триггера (poke-based)
-- Postgres как аналитическое хранилище, подключение из Docker-контейнера к хосту
+- Retry logic с exponential backoff
+- `on_failure_callback` → HTTP alerting на webhook
+- FileSensor для ожидания внешнего триггера
 
 ### v0.3 — dbt layers
-
-- dbt: staging layer (`source()` → `stg_trips`)
-- dbt: marts layer с агрегацией (`ref()` → `vendor_stats`)
-- dbt tests: `unique`, `not_null` — тесты поймали реальную опечатку в названии колонки
-- dbt docs: автоматическая документация + lineage graph
+- staging layer: `source()` → `stg_trips`
+- marts layer: `ref()` → `vendor_stats`
+- dbt tests поймали реальную опечатку в названии колонки
+- dbt docs + lineage graph
 
 ### v0.8 — Airflow + dbt интеграция
-
-- DAG вызывает `dbt run` и `dbt test` через `BashOperator`
-- Исправлен реальный баг совместимости Celery/click в образе Airflow (см. раздел ниже)
-- HTTP-based alerting: DAG отправляет уведомление о финальном провале таска на внешний webhook
-  (в проде это был бы Slack/Telegram webhook; из-за сетевых ограничений — блокировка Telegram API — для демонстрации используется webhook.site)
-- Exponential backoff для retry на нестабильном таске (`retry_exponential_backoff=True`)
-- Airflow Variables для хранения секретов вместо хардкода в коде
+- `dbt run` и `dbt test` через `BashOperator` внутри DAG
+- Исправлен реальный баг: Celery/click 8.3.0 несовместимость → pin на 8.2.1
+- HTTP alerting через webhook.site (Telegram заблокирован в сети — задокументировано)
+- Airflow Variables для хранения конфигов
 
 ### v0.9 — dbt incremental models
+- `materialized='incremental'` с `is_incremental()` и `unique_key`
+- Полный прогон 3.3M строк: **11.84s**
+- Инкрементальный перезапуск без новых данных: **0.3s**
 
-- Реализована `materialized='incremental'` модель с `is_incremental()` и `unique_key`
-- Первый (полный) запуск на 3.3M строк: **11.84s**
-- Повторный инкрементальный запуск без новых данных: **0.3s** — данные не пересчитываются заново, обрабатывается только прирост
-
-### v1.0 — ClickHouse benchmark
-
-- ClickHouse развёрнут в Docker (движок `MergeTree`)
-- Нативная загрузка parquet напрямую в ClickHouse через табличную функцию `file()`, без Python-прослойки — 3.3M строк за **0.54s**
-- Бенчмарк ClickHouse vs Postgres на идентичном агрегирующем запросе
-- Проверена консистентность агрегатов между Postgres и ClickHouse после независимой загрузки данных
-
-### v1.1 — Spark setup
-
-- PySpark 4.2.0 развёрнут локально (local[*] mode)
-- Прочитан parquet-датасет (3.3M строк), схема автоматически выведена Spark
-- Знакомство с lazy evaluation: transformations vs actions
-
-### v1.3 - Spark trasnformation
-
-- DataFrame API: groupBy + agg (vendor aggregation)
-- Spark SQL: идентичный запрос через createOrReplaceTempView + spark.sql()
-- Проверена консистентность результатов между DataFrame API и Spark SQL
-- Кросс-проверка: результаты идентичны агрегатам из Postgres/ClickHouse (три независимых движка)
-
-### v1.3 — Asyncio & UDP sockets (backend foundation)
-
-- Продемонстрирована разница sync vs async: 6s (sequential) → 2s (concurrent) на трёх I/O-bound задачах
-- UDP-сервер: синхронная и асинхронная версии (socket vs asyncio.DatagramProtocol)
-- Асинхронный сервер принимает новые пакеты, не блокируясь обработкой предыдущих — прототип телеметрического коллектора
-
-## Пример работы: SQL-оптимизация (Postgres)
-
-Индексы и партиционирование дали ~5x ускорение запроса:
-
-- Baseline (Seq Scan): 207 ms
-- + Index (узкий фильтр): 49 ms
-- + Partitioning by week + Index: 41.8 ms
-
-## Пример работы: dbt lineage graph
-
-![Lineage Graph](docs/images/image-1.png)
-
-## Пример работы: HTTP alerting
-
-```json
-{
-  "text": "🚨 Task Failed\nDAG: taxi_stats_pipeline\nTask: unstable_external_check\nExecution date: 2026-08-27 18:48:14.910677+00:00"
-}
-```
-
-## ClickHouse vs Postgres — бенчмарк
-
-Запрос: агрегация (avg fare, count) по `vendor_id` с фильтром по дате (узкий диапазон, ~3% от 3.3M строк).
+### v1.0 — ClickHouse OLAP benchmark
+- ClickHouse в Docker, движок MergeTree
+- Нативная загрузка parquet через `file()`: 3.3M строк за **0.54s**
+- Бенчмарк на идентичном агрегирующем запросе vs Postgres
 
 | База | Оптимизация | Время |
 |---|---|---|
-| Postgres | Seq Scan (без индекса) | 207 ms |
+| Postgres | Seq Scan | 207 ms |
 | Postgres | + Index | 49 ms |
-| Postgres | + Partitioning + Index | 41.8 ms |
-| **ClickHouse** | **Без настройки, "из коробки"** | **~0 ms (округлилось)** |
+| Postgres | + Partitioning + Index | **41.8 ms** |
+| ClickHouse | Без настройки | **~0 ms** |
 
-**Вывод:** разница объясняется архитектурой хранения — ClickHouse колоночный (читает только нужные столбцы: `fare_amount`, `pickup_datetime`, `vendor_id`), Postgres строковый (читает целые строки даже при выборке одной колонки). ClickHouse оптимален для OLAP-агрегаций по широким таблицам; Postgres остаётся предпочтительным для точечных транзакционных операций — у ClickHouse нет полноценных ACID-транзакций и `UPDATE`/`DELETE` в привычном смысле.
+Разница: ClickHouse колоночный — читает только нужные столбцы.  
+Postgres строковый — читает целые строки. ClickHouse выигрывает на OLAP-агрегациях,  
+Postgres предпочтительнее для точечных транзакций (полноценный ACID, UPDATE/DELETE).
 
-## Разобранные проблемы (реальные баги, не учебные)
+### v1.1–v1.3 — Apache Spark
+- PySpark 4.2.0, local[*] mode
+- DataFrame API и Spark SQL — идентичные результаты
+- Разобран physical plan: column pruning, shuffle/Exchange, partial aggregation
+- Кросс-проверка агрегатов: Postgres = ClickHouse = Spark ✅
 
-- **Celery/click incompatibility**: свежий баг в связке Airflow 2.10.4 + Celery, вызванный обновлением пакета `click` до 8.3.0 — worker падал в вечный restart-loop. Исправлено закреплением версии `click==8.2.1` в Dockerfile (решение подтверждено официальной документацией Astronomer).
-- **Docker volume paths**: относительные пути в `docker-compose.yaml` резолвятся относительно расположения самого файла, а не текущей рабочей директории — источник нескольких ошибок `file not found`.
-- **profiles.yml внутри контейнера**: dbt использует разные `profiles.yml` на хосте и в контейнере — `host.docker.internal` вместо `localhost` для подключения из Docker к сервисам на хосте.
-- **Jinja-комментарии внутри `{{ config() }}`**: обычный SQL-комментарий `--` внутри блока `{{ }}` ломает парсинг Jinja-выражения — для комментариев внутри `{{ }}` нужен `{# ... #}`.
+### v1.4 — Asyncio & UDP/TCP networking
+- sync vs async демо: 6s → 2s на трёх параллельных I/O-bound задачах
+- UDP-сервер: sync и `asyncio.DatagramProtocol` версии
+- TCP-сервер: sync (`socket.SOCK_STREAM`) и `asyncio.start_server` версии
+- Доказана конкурентность asyncio: два клиента с задержкой 3s обслуживаются за ~3s,  
+  а не за 6s как в sync-версии — один поток, event loop
 
-## Roadmap
+### v1.6 — FastAPI telemetry collector
+- REST API поверх asyncio: `POST /telemetry`, `GET /events`, `GET /health`
+- Pydantic v2 валидация входящего JSON
+- In-memory хранилище событий с счётчиком
+- Разобраны реальные баги: конфликт Pydantic v1/v2, порт занят (WinError 10013),
+  пакеты установились в системный Python вместо venv
 
-**Done:**
-- ✅ dbt (staging, marts, tests, docs, incremental)
-- ✅ ClickHouse (setup, native load, OLAP benchmark)
+## Разобранные баги (реальные, не учебные)
 
-**Next:**
-- Spark (batch-обработка)
-- Asyncio / сокеты (backend-направление)
-
-**Later (продвинутый уровень):**
-- Kafka, Cloud (AWS / Yandex Cloud)
-- Data Lakehouse: Iceberg, Delta Lake, Trino
-- Scala
+| Баг | Причина | Решение |
+|---|---|---|
+| Airflow worker restart loop | click 8.3.0 несовместим с Celery | pin `click==8.2.1` |
+| dbt не видит Postgres | `localhost` в контейнере ≠ хост | `host.docker.internal` |
+| Jinja парсинг падает | `--` комментарий внутри `{{ }}` | использовать `{# #}` |
+| FastAPI ImportError | Pydantic v1 в venv, v2 ожидается | `pip install --upgrade pydantic fastapi` |
+| uvicorn WinError 10013 | порт 8000 занят системным процессом | сменить порт на 8001 |
 
 ## Запуск локально
 
 **Airflow + dbt:**
-
 ```bash
 cd airflow-practice
 docker-compose up airflow-init
@@ -157,17 +100,19 @@ docker-compose up -d
 ```
 
 **ClickHouse:**
-
 ```bash
 cd clickhouse-practice
-
-
-## Комменты
-
-- В данный момент на 11.09.2026 есть проблемы с доступом на сервер для подключения и чтобы гонять данные исправляю проблему
-UPD: так же работаю пока на работаю делаю процессы 
 docker-compose up -d
 ```
-TCP работает проверил этот момент
 
+**FastAPI коллектор:**
+```bash
+cd scripts
+uvicorn fastapi_server:app --host 127.0.0.1 --port 8001 --reload
+```
 
+## Roadmap
+- [ ] Kafka (producer/consumer, топики)
+- [ ] Cloud: AWS S3 + Glue или Yandex Cloud
+- [ ] Data Lakehouse: Delta Lake / Iceberg
+- [ ] Scala (основы для Spark)
