@@ -116,3 +116,6 @@ uvicorn fastapi_server:app --host 127.0.0.1 --port 8001 --reload
 - [ ] Cloud: AWS S3 + Glue или Yandex Cloud
 - [ ] Data Lakehouse: Delta Lake / Iceberg
 - [ ] Scala (основы для Spark)
+
+
+# comment update push 
