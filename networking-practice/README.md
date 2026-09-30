@@ -59,3 +59,6 @@ uvicorn fastapi_server:app --host 127.0.0.1 --port 8001 --reload
 - Pydantic v1/v2 конфликт — `pip install --upgrade pydantic fastapi`
 - Пакеты в системный Python вместо venv — всегда активировать venv перед pip install
 - Windows multiprocessing spawn trap — обязательный `if __name__ == "__main__"`
+
+
+# пред прода ещё нету
