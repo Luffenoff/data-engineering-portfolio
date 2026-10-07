@@ -8,3 +8,6 @@ consumer = KafkaConsumer(
     auto_offset_reset='earliest',
     value_deserializer=lambda v: json.loads(v.decode('utf-8'))
 )
+
+
+print
