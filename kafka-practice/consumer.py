@@ -10,4 +10,14 @@ consumer = KafkaConsumer(
 )
 
 
-print
+print("Consumer запущен, читаем сообщения...")
+
+
+for message in consumer:
+    event = message.value
+    print(f"[partition={message.partition} offset={message.offset}] "
+          f"[{event['level'].upper()}] {event['source']}: {event['message']}")
+    
+    
+    
+print("consumer Завершён")
