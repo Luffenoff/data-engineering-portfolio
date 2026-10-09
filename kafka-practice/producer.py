@@ -23,7 +23,14 @@ for event in events:
     result = future.get(timeout=10)
     print(f"Отправлено: {event['message']} → partition={result.partition}, offset={result.offset}")
     time.sleep(0.5)
-    
+
+
+future = producer.send(
+    'telemetry',
+    key=event['source'].encode('utf-8'),
+    value=event
+)
+
     
 producer.flush()
 producer.close()
