@@ -118,4 +118,17 @@ uvicorn fastapi_server:app --host 127.0.0.1 --port 8001 --reload
 - [ ] Scala (основы для Spark)
 
 
-# comment update push 
+## Базовый event-driven паттерн
+
+
+HTTP Client
+    ↓ POST /telemetry
+FastAPI (asyncio)
+    ↓ producer.send()
+Kafka topic 'telemetry' (3 партиции)
+    ↓ consumer.subscribe()
+Kafka Consumer
+    ↓ print / обработка
+
+
+## Комменты
