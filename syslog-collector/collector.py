@@ -8,4 +8,4 @@ DB_PATH = "syslog.db"
 
 
 def init_db():
-    conn
+    conn = sqlite3.connect(DB_PATH)
