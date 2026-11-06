@@ -3,6 +3,8 @@
 TCP/UDP сокеты, asyncio, FastAPI — от низкоуровневых сокетов до HTTP API.  
 Всё запускалось локально на Windows, баги реальные.
 
+## Version 1.0 - Finish
+
 ## Структура
 
 networking-practice/
