@@ -17,4 +17,7 @@ logs = [
 
 for log in logs:
     sock.sendto(json.dumps(log).encode('utf-8'), ('127.0.0.1', 5140))
+    print(f"Отправлено: {log['source']} {log['message']}")
+    time.sleep(0.3)
     
+sock.close()
