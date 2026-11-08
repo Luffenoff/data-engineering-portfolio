@@ -14,3 +14,5 @@ venv/
 *.parquet
 *.csv
 clickhouse-practice/data/
+syslog.db
+collector.log
