@@ -2,7 +2,6 @@ import sqlite3
 from pathlib import Path
 from fastapi import FastAPI, Query
 
-
 DB_PATH = str(Path(__file__).parent / "syslog.db")
 app = FastAPI()
 
@@ -20,9 +19,9 @@ def query_logs(level, source, limit):
         params.append(source)
     sql += " ORDER BY id DESC LIMIT ?"
     params.append(limit)
-    rows = [dict(r) for r in conn.execute(sql, params).fetchall()]
+    result = [dict(r) for r in conn.execute(sql, params).fetchall()]
     conn.close()
-    return rows()
+    return result
 
 
 @app.get("/logs")
@@ -41,6 +40,4 @@ def stats():
         "SELECT source, level, COUNT(*) FROM logs GROUP BY source, level"
     ).fetchall()
     conn.close()
-    return {"stats": [{"source": s, "level": 1, "count":c} for s, 1, c in rows]}
-
-    
+    return {"stats": [{"source": s, "level": lvl, "count": c} for s, lvl, c in rows]}
