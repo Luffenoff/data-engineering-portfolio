@@ -123,7 +123,7 @@ uvicorn fastapi_server:app --host 127.0.0.1 --port 8001 --reload
 ## Базовый event-driven паттерн
 
 
-HTTP Client
+HTTP Client:
     ↓ POST /telemetry
 FastAPI (asyncio)
     ↓ producer.send()
