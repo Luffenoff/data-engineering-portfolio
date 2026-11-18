@@ -1,0 +1,17 @@
+WITH daily AS (
+    SELECT
+        vendor_id,
+        pickup_datetime::date AS day,
+        SUM(fare_amount) AS revenue
+    FROM trips
+    GROUP BY vendor_id, pickup_datetime::date
+)
+SELECT
+    vendor_id,
+    day,
+    revenue,
+    SUM(revenue) OVER (PARTITION BY vendor_id ORDER BY day) AS running_total,
+    revenue - LAG(revenue) OVER (PARTITION BY vendor_id ORDER BY day) AS diff_vs_prev_day,
+    RANK() OVER (PARTITION BY vendor_id ORDER BY revenue DESC) AS revenue_rank
+FROM daily
+ORDER BY vendor_id, day;
