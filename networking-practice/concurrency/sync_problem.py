@@ -2,7 +2,6 @@ import time
 import asyncio
 
 
-
 async def slow_task(name, delay):
     print(f"[{name}] Начал работу")
     await asyncio.sleep(delay) # симуляция ожидания ответа
