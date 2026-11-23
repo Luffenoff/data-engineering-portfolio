@@ -17,7 +17,6 @@ async def main():
         slow_task("Задача 2", 2),
         slow_task("Задача 3", 2),
     )
-
     print(f"Всего заняло {time.time() - start:.2f} сек")
     
     

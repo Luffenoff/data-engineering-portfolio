@@ -37,5 +37,4 @@ if __name__ == "__main__":
     p2.start()
     p1.join()
     p2.join()
-    print(f"В двух процессах: {time.time() - start:.2f} сек"
-          )
+    print(f"В двух процессах: {time.time() - start:.2f} сек")
