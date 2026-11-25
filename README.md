@@ -127,7 +127,7 @@ HTTP Client:
     ↓ POST /telemetry
 FastAPI (asyncio)
     ↓ producer.send()
-Kafka topic 'telemetry' (3 партиции)
+Kafka topic 'telemetry'
     ↓ consumer.subscribe()
 Kafka Consumer
     ↓ print / обработка
@@ -136,5 +136,3 @@ Kafka Consumer
 ## Комменты
 # ещё не тестировал не хватает времени а так в процессе тестов так как реп этот будет очень показательным и делаю его правильно, этот проект будет подключен к серверу где будут гонятся данные но всё в моментах планирования и разработки.
 # Всё близится к завершению
-/
-/
